@@ -1,0 +1,6 @@
+com/voicechat/VoiceChatApplication.class
+com/voicechat/VoiceChatApplication$1.class
+com/voicechat/model/ChatResponse.class
+com/voicechat/model/ChatRequest.class
+com/voicechat/service/OpenAIService.class
+com/voicechat/controller/ChatController.class
