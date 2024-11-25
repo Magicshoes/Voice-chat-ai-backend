@@ -15,8 +15,19 @@ public class OpenAIService {
     @Value("${openai.api.key}")
     private String apiKey;
 
+    private OpenAiService openAiServiceClient;
+
     public String generateResponse(String message, String model) {
-        OpenAiService service = new OpenAiService(apiKey);
+        if (message == null || message.trim().isEmpty()) {
+            throw new IllegalArgumentException("Message cannot be null or empty");
+        }
+        if (model == null || model.trim().isEmpty()) {
+            throw new IllegalArgumentException("Model cannot be null or empty");
+        }
+
+        if (openAiServiceClient == null) {
+            openAiServiceClient = new OpenAiService(apiKey);
+        }
 
         List<ChatMessage> messages = new ArrayList<>();
         messages.add(new ChatMessage("user", message));
@@ -26,7 +37,7 @@ public class OpenAIService {
                 .model(model)
                 .build();
 
-        return service.createChatCompletion(completionRequest)
+        return openAiServiceClient.createChatCompletion(completionRequest)
                 .getChoices().get(0).getMessage().getContent();
     }
 }
