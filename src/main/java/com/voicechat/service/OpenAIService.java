@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.annotation.PostConstruct;
+
 @Service
 public class OpenAIService {
 
@@ -17,16 +19,17 @@ public class OpenAIService {
 
     private OpenAiService openAiServiceClient;
 
+    @PostConstruct
+    public void init() {
+        openAiServiceClient = new OpenAiService(apiKey);
+    }
+
     public String generateResponse(String message, String model) {
         if (message == null || message.trim().isEmpty()) {
             throw new IllegalArgumentException("Message cannot be null or empty");
         }
         if (model == null || model.trim().isEmpty()) {
             throw new IllegalArgumentException("Model cannot be null or empty");
-        }
-
-        if (openAiServiceClient == null) {
-            openAiServiceClient = new OpenAiService(apiKey);
         }
 
         List<ChatMessage> messages = new ArrayList<>();

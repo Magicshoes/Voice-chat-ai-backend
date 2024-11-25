@@ -34,7 +34,6 @@ class OpenAIServiceTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(openAIService, "apiKey", TEST_API_KEY);
-        ReflectionTestUtils.setField(openAIService, "openAiServiceClient", openAiServiceClient);
     }
 
     @Test
