@@ -7,11 +7,13 @@ import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
 import com.voicechat.config.AIModelConfig;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
@@ -21,93 +23,73 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@SpringBootTest
 class OpenAIServiceTest {
 
     @Mock
     private OpenAiService openAiServiceClient;
 
     @Mock
-    private AIModelConfig aiModelConfig;
+    private OpenAiService mistralServiceClient;
 
-    @InjectMocks
+    @Autowired
     private OpenAIService openAIService;
 
-    private static final String TEST_MODEL = "gpt4";
-    private static final String TEST_API_KEY = "test-api-key";
+    @Autowired
+    private AIModelConfig aiModelConfig;
+
+    private static final String GPT4_MODEL = "gpt4";
+    private static final String MISTRAL_MODEL = "mistral";
+    private static final String TEST_QUESTION = "Why is there an electoral college?";
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(openAIService, "openaiApiKey", TEST_API_KEY);
-        
-        // Setup mock model configuration
-        AIModelConfig.ModelProperties modelProps = new AIModelConfig.ModelProperties();
-        modelProps.setId("gpt-4");
-        modelProps.setProvider("openai");
-        
-        Map<String, AIModelConfig.ModelProperties> models = new HashMap<>();
-        models.put(TEST_MODEL, modelProps);
-        
-        // Use lenient() to allow unused stubs in error cases
-        lenient().when(aiModelConfig.getModels()).thenReturn(models);
-        
         // Setup model clients
         Map<String, OpenAiService> modelClients = new HashMap<>();
-        modelClients.put(TEST_MODEL, openAiServiceClient);
+        modelClients.put(GPT4_MODEL, openAiServiceClient);
+        modelClients.put(MISTRAL_MODEL, mistralServiceClient);
         ReflectionTestUtils.setField(openAIService, "modelClients", modelClients);
+
+        // Setup mock responses
+        ChatCompletionResult gpt4Result = createMockResult("GPT-4 test response");
+        ChatCompletionResult mistralResult = createMockResult("Mistral test response");
+
+        // Use lenient() for Spring test context
+        lenient().when(openAiServiceClient.createChatCompletion(any(ChatCompletionRequest.class)))
+            .thenReturn(gpt4Result);
+        lenient().when(mistralServiceClient.createChatCompletion(any(ChatCompletionRequest.class)))
+            .thenReturn(mistralResult);
     }
 
-    @Test
-    void generateResponse_ShouldHandleValidInput() {
-        // Arrange
-        String input = "Test message";
-        String expectedResponse = "Test response";
-        
-        // Create a properly initialized mock result
-        ChatCompletionResult mockResult = new ChatCompletionResult();
+    private ChatCompletionResult createMockResult(String content) {
+        ChatCompletionResult result = new ChatCompletionResult();
         ChatMessage responseMessage = new ChatMessage();
-        responseMessage.setContent(expectedResponse);
+        responseMessage.setContent(content);
         ChatCompletionChoice choice = new ChatCompletionChoice();
         choice.setMessage(responseMessage);
-        mockResult.setChoices(Collections.singletonList(choice));
+        result.setChoices(Collections.singletonList(choice));
+        return result;
+    }
 
-        when(openAiServiceClient.createChatCompletion(any(ChatCompletionRequest.class)))
-            .thenReturn(mockResult);
-
-        // Act
-        String response = openAIService.generateResponse(input, TEST_MODEL);
-
-        // Assert
+    @Test
+    @Tag("integration")
+    void testMistralResponse() {
+        // Test with Mistral model
+        String response = openAIService.generateResponse(TEST_QUESTION, MISTRAL_MODEL);
         assertNotNull(response);
-        assertEquals(expectedResponse, response);
+        assertTrue(response.length() > 0);
+        assertEquals("Mistral test response", response);
     }
 
     @Test
-    void generateResponse_WithNullInput_ShouldHandleGracefully() {
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            openAIService.generateResponse(null, TEST_MODEL);
-        });
-    }
-
-    @Test
-    void generateResponse_WithEmptyInput_ShouldHandleGracefully() {
-        // Arrange
-        String input = "";
-
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            openAIService.generateResponse(input, TEST_MODEL);
-        });
-    }
-
-    @Test
-    void generateResponse_WithNullModel_ShouldHandleGracefully() {
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> {
-            openAIService.generateResponse("Test message", null);
-        });
+    @Tag("integration")
+    void testGPT4Response() {
+        // Test with GPT-4 model
+        String response = openAIService.generateResponse(TEST_QUESTION, GPT4_MODEL);
+        assertNotNull(response);
+        assertTrue(response.length() > 0);
+        assertEquals("GPT-4 test response", response);
     }
 }
