@@ -1,9 +1,19 @@
 package com.voicechat.service;
 
-import com.theokanning.openai.completion.chat.ChatCompletionRequest;
-import com.theokanning.openai.completion.chat.ChatMessage;
-import com.theokanning.openai.service.OpenAiService;
+import dev.ai4j.openai4j.chat.ChatCompletionRequest;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.mistralai.MistralAiChatModel;
+import dev.langchain4j.model.mistralai.MistralAiChatModelName;
+import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.service.AiServices;
+
 import com.voicechat.config.AIModelConfig;
+import com.voicechat.config.ApiKeys;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,7 +34,12 @@ public class OpenAIService {
     @Autowired
     private AIModelConfig aiModelConfig;
 
-    private Map<String, OpenAiService> modelClients;
+    private Map<String, ChatLanguageModel> modelClients;
+
+    interface Assistant {
+
+        String chat(String message);
+    }
 
     @PostConstruct
     public void init() {
@@ -33,7 +48,17 @@ public class OpenAIService {
         for (Map.Entry<String, AIModelConfig.ModelProperties> entry : aiModelConfig.getModels().entrySet()) {
             AIModelConfig.ModelProperties props = entry.getValue();
             if ("openai".equals(props.getProvider())) {
-                modelClients.put(entry.getKey(), new OpenAiService(openaiApiKey));
+                ChatLanguageModel openaiModel = OpenAiChatModel.builder()
+                    .apiKey(System.getenv("OPENAI_API_KEY"))
+                    .modelName(props.getId())
+                    .build();
+                modelClients.put(entry.getKey(), openaiModel);
+            } else if ("mistral".equals(props.getProvider())) {
+                ChatLanguageModel mistralmodel = MistralAiChatModel.builder()
+                .apiKey(ApiKeys.MISTRALAI_API_KEY)
+                .modelName(props.getId())
+                .build();
+                modelClients.put(entry.getKey(), mistralmodel ); // Assuming you have a mistralApiKey
             }
             // Add support for other providers as needed
         }
@@ -52,20 +77,26 @@ public class OpenAIService {
             throw new IllegalArgumentException("Invalid model key: " + modelKey);
         }
 
-        OpenAiService client = modelClients.get(modelKey);
-        if (client == null) {
+        ChatLanguageModel clientModel = modelClients.get(modelKey);
+        if (clientModel == null) {
             throw new IllegalArgumentException("No client configured for model: " + modelKey);
         }
 
-        List<ChatMessage> messages = new ArrayList<>();
-        messages.add(new ChatMessage("user", message));
+        ChatMemory chatMemory = MessageWindowChatMemory.withMaxMessages(10);
 
-        ChatCompletionRequest completionRequest = ChatCompletionRequest.builder()
-                .messages(messages)
-                .model(modelProps.getId())
+        Assistant assistant = AiServices.builder(Assistant.class)
+                .chatLanguageModel(clientModel)
+                .chatMemory(chatMemory)
                 .build();
 
-        return client.createChatCompletion(completionRequest)
-                .getChoices().get(0).getMessage().getContent();
+        String answer = assistant.chat(message);
+
+        ChatMessage cAnswer = new AiMessage(answer);
+        chatMemory.add(cAnswer);    
+
+        //Incorrect but idea germ of creating a List<ChatMessage> messages that gets stored or returned separately.
+        // List<ChatMessage> messages = chatMemory.getMessages();
+
+        return answer;
     }
 }
