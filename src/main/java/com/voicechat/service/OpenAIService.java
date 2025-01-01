@@ -28,8 +28,8 @@ import jakarta.annotation.PostConstruct;
 @Service
 public class OpenAIService {
 
-    @Value("${openai.api.key}")
-    private String openaiApiKey;
+    // @Value("${openai.api.key}")
+    // private String openaiApiKey;
 
     @Autowired
     private AIModelConfig aiModelConfig;
@@ -49,13 +49,13 @@ public class OpenAIService {
             AIModelConfig.ModelProperties props = entry.getValue();
             if ("openai".equals(props.getProvider())) {
                 ChatLanguageModel openaiModel = OpenAiChatModel.builder()
-                    .apiKey(System.getenv("OPENAI_API_KEY"))
+                    .apiKey(props.getApiKey())
                     .modelName(props.getId())
                     .build();
                 modelClients.put(entry.getKey(), openaiModel);
             } else if ("mistral".equals(props.getProvider())) {
                 ChatLanguageModel mistralmodel = MistralAiChatModel.builder()
-                .apiKey(ApiKeys.MISTRALAI_API_KEY)
+                .apiKey(props.getApiKey())
                 .modelName(props.getId())
                 .build();
                 modelClients.put(entry.getKey(), mistralmodel ); // Assuming you have a mistralApiKey

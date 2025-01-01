@@ -22,7 +22,8 @@ public class AIModelConfig {
         private String id;
         private String provider;
         private String baseUrl;
-
+        private String apiKey;
+        
         public String getId() {
             return id;
         }
@@ -45,6 +46,12 @@ public class AIModelConfig {
 
         public void setBaseUrl(String baseUrl) {
             this.baseUrl = baseUrl;
+        }
+        public String getApiKey() {
+            return apiKey;
+        }    
+       public void setApiKey(String apiKey) {
+            this.apiKey = apiKey;
         }
     }
 }
