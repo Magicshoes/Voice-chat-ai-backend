@@ -55,7 +55,7 @@ public class OpenAIService {
                 modelClients.put(entry.getKey(), openaiModel);
             } else if ("mistral".equals(props.getProvider())) {
                 ChatLanguageModel mistralmodel = MistralAiChatModel.builder()
-                .apiKey(props.getApiKey())
+                .apiKey(props.getApiKey()) // Replace with your actual API key (p.tostring())
                 .modelName(props.getId())
                 .build();
                 modelClients.put(entry.getKey(), mistralmodel ); // Assuming you have a mistralApiKey
