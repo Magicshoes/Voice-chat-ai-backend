@@ -1,25 +1,19 @@
 package com.voicechat.service;
 
-import dev.ai4j.openai4j.chat.ChatCompletionRequest;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.mistralai.MistralAiChatModel;
-import dev.langchain4j.model.mistralai.MistralAiChatModelName;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 
 import com.voicechat.config.AIModelConfig;
-import com.voicechat.config.ApiKeys;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
