@@ -1,5 +1,2 @@
-/target/
-/target/classes/
-/target/test-classes/
-/src/test/resources/ 
+target/
 .vscode/
