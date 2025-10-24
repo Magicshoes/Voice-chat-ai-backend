@@ -13,9 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class ChatController {
 
-    @Autowired
-    private OpenAIService openAIService;
+    private final OpenAIService openAIService;
 
+    @Autowired
+    public ChatController(OpenAIService openAIService) {
+        this.openAIService = openAIService;
+    }
+    
     @PostMapping("/chat")
     public ChatResponse chat(@RequestBody ChatRequest request) {
         String response = openAIService.generateResponse(request.getMessage(), request.getModel());
