@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.HashMap;
 
-import jakarta.annotation.PostConstruct;
+//import jakarta.annotation.PostConstruct;
 
 @Service
 public class OpenAIService {
@@ -35,7 +35,7 @@ public class OpenAIService {
         String chat(String message);
     }
 
-    @PostConstruct
+    //@PostConstruct
     public void init() {
         modelClients = new HashMap<>();
         

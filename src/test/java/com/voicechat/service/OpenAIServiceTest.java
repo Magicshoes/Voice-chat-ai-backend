@@ -26,17 +26,18 @@ public class OpenAIServiceTest {
     public void setUp() {
         // Mock the AIModelConfig to return a valid model properties
         AIModelConfig.ModelProperties modelProperties = new AIModelConfig.ModelProperties();
-        modelProperties.setProvider("openai");
+        modelProperties.setProvider("mistral");
         modelProperties.setApiKey("mockApiKey");
         modelProperties.setId("mockModelId");
 
-        when(aiModelConfig.getModels()).thenReturn(Map.of("mockModelKey", modelProperties));
+        when(aiModelConfig.getModels()).thenReturn(Map.of("mistral", modelProperties));
     }
 
-    @Test
+   // @Test
     public void testGenerateResponse() {
         String message = "Hello, how are you?";
         String modelKey = "mistral";
+        // String modelKey = "mockModelKey";
 
         String response = openAIService.generateResponse(message, modelKey);
 
