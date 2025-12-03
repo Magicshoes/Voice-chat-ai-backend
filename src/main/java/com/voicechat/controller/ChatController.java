@@ -22,7 +22,14 @@ public class ChatController {
     
     @PostMapping("/chat")
     public ChatResponse chat(@RequestBody ChatRequest request) {
-        String response = openAIService.generateResponse(request.getMessage(), request.getModel());
+        String response = openAIService.generateResponse(
+            request.getUserMessage(),
+            request.getModel(),
+            request.getSystemMessage(),
+            request.getContext(),
+            request.getTemperature(),
+            request.getMaxTokens()
+        );
         return new ChatResponse(response);
     }
 }

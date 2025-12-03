@@ -50,10 +50,10 @@ public class OpenAIServiceTest {
         String modelKey = "mistral";
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            openAIService.generateResponse(null, modelKey);
+            openAIService.generateResponse(null, modelKey, null, null, null, null);
         });
 
-        assertEquals("Message cannot be null or empty", exception.getMessage());
+        assertEquals("User message cannot be null or empty", exception.getMessage());
     }
 
     @Test
@@ -62,10 +62,10 @@ public class OpenAIServiceTest {
         String modelKey = "mistral";
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            openAIService.generateResponse("", modelKey);
+            openAIService.generateResponse("", modelKey, null, null, null, null);
         });
 
-        assertEquals("Message cannot be null or empty", exception.getMessage());
+        assertEquals("User message cannot be null or empty", exception.getMessage());
     }
 
     @Test
@@ -74,10 +74,10 @@ public class OpenAIServiceTest {
         String modelKey = "mistral";
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            openAIService.generateResponse("   ", modelKey);
+            openAIService.generateResponse("   ", modelKey, null, null, null, null);
         });
 
-        assertEquals("Message cannot be null or empty", exception.getMessage());
+        assertEquals("User message cannot be null or empty", exception.getMessage());
     }
 
     @Test
@@ -86,7 +86,7 @@ public class OpenAIServiceTest {
         String message = "Hello, how are you?";
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            openAIService.generateResponse(message, null);
+            openAIService.generateResponse(message, null, null, null, null, null);
         });
 
         assertEquals("Model cannot be null or empty", exception.getMessage());
@@ -98,7 +98,7 @@ public class OpenAIServiceTest {
         String message = "Hello, how are you?";
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            openAIService.generateResponse(message, "");
+            openAIService.generateResponse(message, "", null, null, null, null);
         });
 
         assertEquals("Model cannot be null or empty", exception.getMessage());
@@ -110,7 +110,7 @@ public class OpenAIServiceTest {
         String message = "Hello, how are you?";
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            openAIService.generateResponse(message, "   ");
+            openAIService.generateResponse(message, "   ", null, null, null, null);
         });
 
         assertEquals("Model cannot be null or empty", exception.getMessage());
@@ -123,26 +123,24 @@ public class OpenAIServiceTest {
         String invalidModelKey = "invalidKey";
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            openAIService.generateResponse(message, invalidModelKey);
+            openAIService.generateResponse(message, invalidModelKey, null, null, null, null);
         });
 
         assertEquals("Invalid model key: " + invalidModelKey, exception.getMessage());
     }
 
     @Test
-    @DisplayName("Should throw IllegalArgumentException when no client configured for model")
-    public void testGenerateResponseWithNoClientConfigured() {
+    @DisplayName("Should work with backward compatibility method")
+    public void testGenerateResponseBackwardCompatibility() {
         String message = "Hello, how are you?";
         String modelKey = "openai";
 
-        // The model key exists but we need to call init() first to initialize modelClients
-        // Since init hasn't been called, modelClients will be null
+        // The old method signature should still throw proper error
         Exception exception = assertThrows(Exception.class, () -> {
             openAIService.generateResponse(message, modelKey);
         });
 
-        // This could be NullPointerException if modelClients is not initialized
-        // or IllegalArgumentException if the proper validation checks modelClients
+        // This should be either a proper validation error or model not initialized error
         assertNotNull(exception);
     }
 

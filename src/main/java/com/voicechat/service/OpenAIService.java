@@ -58,9 +58,10 @@ public class OpenAIService {
         }
     }
 
-    public String generateResponse(String message, String modelKey) {
-        if (message == null || message.trim().isEmpty()) {
-            throw new IllegalArgumentException("Message cannot be null or empty");
+    public String generateResponse(String userMessage, String modelKey, String systemMessage, 
+                                   String context, Double temperature, Integer maxTokens) {
+        if (userMessage == null || userMessage.trim().isEmpty()) {
+            throw new IllegalArgumentException("User message cannot be null or empty");
         }
         if (modelKey == null || modelKey.trim().isEmpty()) {
             throw new IllegalArgumentException("Model cannot be null or empty");
@@ -78,12 +79,24 @@ public class OpenAIService {
 
         ChatMemory chatMemory = MessageWindowChatMemory.withMaxMessages(10);
 
+        // Build the complete message with system message and context if provided
+        StringBuilder messageBuilder = new StringBuilder();
+        if (systemMessage != null && !systemMessage.trim().isEmpty()) {
+            messageBuilder.append(systemMessage).append("\n\n");
+        }
+        if (context != null && !context.trim().isEmpty()) {
+            messageBuilder.append("Context: ").append(context).append("\n\n");
+        }
+        messageBuilder.append(userMessage);
+        
+        String completeMessage = messageBuilder.toString();
+
         Assistant assistant = AiServices.builder(Assistant.class)
                 .chatLanguageModel(clientModel)
                 .chatMemory(chatMemory)
                 .build();
 
-        String answer = assistant.chat(message);
+        String answer = assistant.chat(completeMessage);
 
         ChatMessage cAnswer = new AiMessage(answer);
         chatMemory.add(cAnswer);    
@@ -92,5 +105,9 @@ public class OpenAIService {
         // List<ChatMessage> messages = chatMemory.getMessages();
 
         return answer;
+    }
+
+    public String generateResponse(String message, String modelKey) {
+        return generateResponse(message, modelKey, null, null, null, null);
     }
 }
